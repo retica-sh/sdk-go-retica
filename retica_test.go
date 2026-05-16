@@ -117,7 +117,7 @@ func TestTraceHTTP_ErrorStatusMarked(t *testing.T) {
 func TestOptions_Defaults(t *testing.T) {
 	o := defaultOpts()
 
-	if o.ingestURL != "http://localhost:3000" {
+	if o.ingestURL != "https://ingest.retica.sh" {
 		t.Errorf("ingestURL = %q", o.ingestURL)
 	}
 	if o.serviceName != "unknown" {

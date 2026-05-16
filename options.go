@@ -21,7 +21,7 @@ type OptFunc func(*opts)
 func defaultOpts() opts {
 	return opts{
 		ingestKey:     os.Getenv("RETICA_INGEST_KEY"),
-		ingestURL:     envOrDefault("RETICA_INGEST_URL", "http://localhost:3000"),
+		ingestURL:     envOrDefault("RETICA_INGEST_URL", "https://ingest.retica.sh"),
 		serviceName:   envOrDefault("RETICA_SERVICE_NAME", "unknown"),
 		batchSize:     256,
 		flushInterval: 5 * time.Second,
