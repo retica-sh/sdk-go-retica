@@ -13,8 +13,8 @@
 // All options use the functional options pattern:
 //
 //	r := retica.New(
-//	    retica.WithIngestKey("ik_live_..."),       // required (or env)
-//	    retica.WithIngestURL("https://..."),        // default: http://localhost:3000
+//	    retica.WithIngestKey("ik_live_..."),        // required (or env)
+//	    retica.WithIngestURL("https://..."),        // default: https://ingest.retica.sh
 //	    retica.WithServiceName("my-service"),       // default: "unknown"
 //	    retica.WithBatchSize(256),                  // default: 256, max: 1000
 //	    retica.WithFlushInterval(5 * time.Second),  // default: 5s
@@ -30,7 +30,7 @@
 // # Environment variables
 //
 //	RETICA_INGEST_KEY     API key (ik_live_... or ik_test_...)
-//	RETICA_INGEST_URL     Ingest API base URL (default: http://localhost:3000)
+//	RETICA_INGEST_URL     Ingest API base URL (default: https://ingest.retica.sh)
 //	RETICA_SERVICE_NAME   Service name in traces (default: "unknown")
 //
 // With... options take precedence over environment variables.
