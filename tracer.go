@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -38,7 +39,23 @@ type FinishFunc func(ResponseInfo)
 //
 // Adapters call Begin before invoking the framework handler so headers can be
 // set on the response before the body is written.
+func (r *Retica) shouldSkip(path string) bool {
+	if _, ok := r.o.skipPaths[path]; ok {
+		return true
+	}
+	for _, prefix := range r.o.skipPathPrefixes {
+		if strings.HasPrefix(path, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
 func (r *Retica) Begin(req RequestInfo) (traceID, spanID string, finish FinishFunc) {
+	if r.shouldSkip(req.Path) {
+		return "", "", func(ResponseInfo) {}
+	}
+
 	if r.o.sampleRate < 1.0 && rand.Float64() > r.o.sampleRate {
 		return "", "", func(ResponseInfo) {}
 	}

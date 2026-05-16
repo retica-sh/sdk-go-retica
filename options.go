@@ -6,13 +6,15 @@ import (
 )
 
 type opts struct {
-	ingestKey     string
-	ingestURL     string
-	serviceName   string
-	batchSize     int
-	flushInterval time.Duration
-	sampleRate    float64
-	errorHandler  func(err error)
+	ingestKey        string
+	ingestURL        string
+	serviceName      string
+	batchSize        int
+	flushInterval    time.Duration
+	sampleRate       float64
+	errorHandler     func(err error)
+	skipPaths        map[string]struct{}
+	skipPathPrefixes []string
 }
 
 // OptFunc is a functional option for configuring the Retica SDK.
@@ -86,4 +88,23 @@ func WithSampleRate(rate float64) OptFunc {
 // silently dropped.
 func WithErrorHandler(fn func(err error)) OptFunc {
 	return func(o *opts) { o.errorHandler = fn }
+}
+
+// WithSkipPaths configures paths that are never traced. Matching is exact.
+func WithSkipPaths(paths ...string) OptFunc {
+	return func(o *opts) {
+		if o.skipPaths == nil {
+			o.skipPaths = make(map[string]struct{}, len(paths))
+		}
+		for _, p := range paths {
+			o.skipPaths[p] = struct{}{}
+		}
+	}
+}
+
+// WithSkipPathPrefixes configures path prefixes that are never traced.
+func WithSkipPathPrefixes(prefixes ...string) OptFunc {
+	return func(o *opts) {
+		o.skipPathPrefixes = append(o.skipPathPrefixes, prefixes...)
+	}
 }

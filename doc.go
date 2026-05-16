@@ -19,6 +19,8 @@
 //	    retica.WithBatchSize(256),                  // default: 256, max: 1000
 //	    retica.WithFlushInterval(5 * time.Second),  // default: 5s
 //	    retica.WithSampleRate(0.1),                 // default: 1.0
+//	    retica.WithSkipPaths("/livez", "/healthz"), // never trace these
+//	    retica.WithSkipPathPrefixes("/debug/"),     // never trace /debug/*
 //	    retica.WithErrorHandler(func(err error) {   // default: silent
 //	        log.Println("retica:", err)
 //	    }),

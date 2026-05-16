@@ -194,6 +194,99 @@ func TestOptions_Boundaries(t *testing.T) {
 	}
 }
 
+func TestSkipPaths_ExactMatch(t *testing.T) {
+	r := New(WithSkipPaths("/healthz"))
+	t.Cleanup(r.Shutdown)
+
+	traceID, spanID := r.TraceHTTP(RequestInfo{Method: "GET", Path: "/healthz"}, func() ResponseInfo {
+		return ResponseInfo{StatusCode: 200}
+	})
+	if traceID != "" || spanID != "" {
+		t.Errorf("expected empty IDs for skipped path, got %q/%q", traceID, spanID)
+	}
+
+	traceID, spanID = r.TraceHTTP(RequestInfo{Method: "GET", Path: "/hello"}, func() ResponseInfo {
+		return ResponseInfo{StatusCode: 200}
+	})
+	if traceID == "" || spanID == "" {
+		t.Error("non-skipped path should produce IDs")
+	}
+
+	r.buf.mu.Lock()
+	count := len(r.buf.spans)
+	r.buf.mu.Unlock()
+	if count != 1 {
+		t.Errorf("buffered spans = %d, want 1", count)
+	}
+}
+
+func TestSkipPaths_NoPartialMatch(t *testing.T) {
+	r := New(WithSkipPaths("/health"))
+	t.Cleanup(r.Shutdown)
+
+	traceID, _ := r.TraceHTTP(RequestInfo{Method: "GET", Path: "/healthz"}, func() ResponseInfo {
+		return ResponseInfo{StatusCode: 200}
+	})
+	if traceID == "" {
+		t.Error("/healthz should NOT be skipped by exact /health")
+	}
+}
+
+func TestSkipPathPrefixes_Match(t *testing.T) {
+	r := New(WithSkipPathPrefixes("/debug/"))
+	t.Cleanup(r.Shutdown)
+
+	traceID, _ := r.TraceHTTP(RequestInfo{Method: "GET", Path: "/debug/pprof"}, func() ResponseInfo {
+		return ResponseInfo{StatusCode: 200}
+	})
+	if traceID != "" {
+		t.Error("/debug/pprof should be skipped by prefix /debug/")
+	}
+
+	traceID, _ = r.TraceHTTP(RequestInfo{Method: "GET", Path: "/api/debug/"}, func() ResponseInfo {
+		return ResponseInfo{StatusCode: 200}
+	})
+	if traceID == "" {
+		t.Error("/api/debug/ should NOT be skipped by prefix /debug/")
+	}
+}
+
+func TestSkipPaths_HandlerStillRuns(t *testing.T) {
+	r := New(WithSkipPaths("/healthz"))
+	t.Cleanup(r.Shutdown)
+
+	ran := false
+	traceID, _ := r.TraceHTTP(RequestInfo{Method: "GET", Path: "/healthz"}, func() ResponseInfo {
+		ran = true
+		return ResponseInfo{StatusCode: 200}
+	})
+	if !ran {
+		t.Fatal("handler must run even when path is skipped")
+	}
+	if traceID != "" {
+		t.Error("skipped path should return empty traceID")
+	}
+
+	r.buf.mu.Lock()
+	count := len(r.buf.spans)
+	r.buf.mu.Unlock()
+	if count != 0 {
+		t.Errorf("buffered spans = %d, want 0", count)
+	}
+}
+
+func TestSkipPaths_OverridesSampleRate(t *testing.T) {
+	r := New(WithSkipPaths("/healthz"), WithSampleRate(1.0))
+	t.Cleanup(r.Shutdown)
+
+	traceID, _ := r.TraceHTTP(RequestInfo{Method: "GET", Path: "/healthz"}, func() ResponseInfo {
+		return ResponseInfo{StatusCode: 200}
+	})
+	if traceID != "" {
+		t.Error("skip should override 100% sample rate")
+	}
+}
+
 func TestIDGen(t *testing.T) {
 	a := NewTraceID()
 	b := NewTraceID()

@@ -51,6 +51,8 @@ r.Submit(retica.SpanInput{
 | `WithFlushInterval(time.Duration)` | 5s | How often the buffer flushes |
 | `WithSampleRate(float64)` | 1.0 | Fraction of requests to trace; clamped to [0, 1] |
 | `WithErrorHandler(func(error))` | nil (silent) | Called on ingest failures |
+| `WithSkipPaths(...string)` | none | Exact paths never traced (e.g. `/healthz`) |
+| `WithSkipPathPrefixes(...string)` | none | Path prefixes never traced (e.g. `/internal/`) |
 
 Code-based options override environment variables.
 
